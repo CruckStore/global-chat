@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+// frontend/src/components/Chat.tsx
+
+import React, { useState, useEffect, useRef } from "react";
 import "./Chat.scss";
 import {
   login,
@@ -19,8 +21,9 @@ const Chat: React.FC = () => {
   const [msgs, setMsgs] = useState<Message[]>([]);
   const [pseudo, setPseudo] = useState("");
   const [replyTo, setReplyTo] = useState<Message | null>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
-  // auto-login
+  // auto-login…
   useEffect(() => {
     const stored = localStorage.getItem("chat_user");
     if (stored) {
@@ -34,7 +37,7 @@ const Chat: React.FC = () => {
     }
   }, []);
 
-  // polling
+  // fetch + polling
   useEffect(() => {
     if (!user) return;
     const load = () => getMessages().then(setMsgs).catch(console.error);
@@ -42,6 +45,13 @@ const Chat: React.FC = () => {
     const timer = setInterval(load, POLL_INTERVAL);
     return () => clearInterval(timer);
   }, [user]);
+
+  useEffect(() => {
+    if (listRef.current) {
+      const el = listRef.current;
+      el.scrollTop = el.scrollHeight;
+    }
+  }, [msgs]);
 
   const handleLogin = async () => {
     try {
@@ -55,6 +65,11 @@ const Chat: React.FC = () => {
 
   const initiateReply = (message: Message) => {
     setReplyTo(message);
+
+    listRef.current?.scrollTo({
+      top: listRef.current.scrollHeight,
+      behavior: "smooth",
+    });
   };
 
   const handleSend = async (content: string, parentId?: number) => {
@@ -117,7 +132,7 @@ const Chat: React.FC = () => {
         Chat Général — Vous êtes <em>{user.pseudo}</em> ({user.role})
       </header>
 
-      <main className="message-list">
+      <main className="message-list" ref={listRef}>
         <MessageList
           messages={msgs}
           currentUser={user}
