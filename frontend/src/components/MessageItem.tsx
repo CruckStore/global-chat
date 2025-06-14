@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import "./MessageItem.scss";
 import type { Message, User } from "../services/api";
 
@@ -22,18 +22,33 @@ const MessageItem: React.FC<MessageItemProps> = ({
     own && (currentUser.role === "premium" || currentUser.role === "admin");
   const canDelete = currentUser.role === "admin";
 
+  const [isEditing, setIsEditing] = useState(false);
+  const [draft, setDraft] = useState(m.content);
+
+  const handleSave = () => {
+    const trimmed = draft.trim();
+    if (trimmed && trimmed !== m.content) {
+      onEdit(m.id, trimmed);
+    }
+    setIsEditing(false);
+  };
+  const handleCancel = () => {
+    setDraft(m.content);
+    setIsEditing(false);
+  };
+
   const handleReply = () => {
-    const reply = prompt("Votre réponse :");
+    const reply = window.prompt("Votre réponse :");
     if (reply) onReply(reply, m.id);
   };
 
-  const handleEdit = () => {
-    const edited = prompt("Modifier votre message :", m.content);
-    if (edited) onEdit(m.id, edited);
-  };
-
   return (
-    <div className="message-item">
+    <div
+      className={`message-item
+        ${own ? "self" : "other"}
+        ${m.parent_id ? "reply" : ""}
+      `}
+    >
       <div className="message-header">
         <span className="message-pseudo">{m.pseudo}</span>
         <span className="message-time">
@@ -41,25 +56,47 @@ const MessageItem: React.FC<MessageItemProps> = ({
         </span>
         {m.edited && <span className="message-edited">(modifié)</span>}
       </div>
-      <div className="message-content">{m.content}</div>
-      <div className="message-actions">
-        <button className="btn-reply" onClick={handleReply}>
-          Répondre
-        </button>
-        {canEdit && (
-          <button className="btn-edit" onClick={handleEdit}>
-            Modifier
+
+      {isEditing ? (
+        <div className="inline-editor">
+          <textarea
+            className="inline-textarea"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+          />
+          <div className="inline-actions">
+            <button className="btn-save" onClick={handleSave}>
+              Sauvegarder
+            </button>
+            <button className="btn-cancel" onClick={handleCancel}>
+              Annuler
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="message-content">{m.content}</div>
+      )}
+
+      {!isEditing && (
+        <div className="message-actions">
+          <button className="btn-reply" onClick={handleReply}>
+            Répondre
           </button>
-        )}
-        {own && !canEdit && (
-          <span className="no-permission">– pas autorisé à modifier</span>
-        )}
-        {canDelete && (
-          <button className="btn-delete" onClick={() => onDelete(m.id)}>
-            Supprimer
-          </button>
-        )}
-      </div>
+          {canEdit && (
+            <button className="btn-edit" onClick={() => setIsEditing(true)}>
+              Modifier
+            </button>
+          )}
+          {own && !canEdit && (
+            <span className="no-permission">– pas autorisé à modifier</span>
+          )}
+          {canDelete && (
+            <button className="btn-delete" onClick={() => onDelete(m.id)}>
+              Supprimer
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 };

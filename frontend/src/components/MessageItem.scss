@@ -71,3 +71,8 @@
   color: var(--secondary-text);
   font-style: italic;
 }
+
+.message-item.reply {
+  margin-left: 24px;
+  border-left: 4px solid var(--reply-accent);
+}
