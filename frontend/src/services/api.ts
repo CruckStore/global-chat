@@ -44,18 +44,31 @@ async function request<T>(
 }
 
 export async function login(pseudo: string, userId?: string): Promise<User> {
-  try {
-    const body = userId ? { pseudo, userId } : { pseudo };
-    return await request<User>("/api/login", {
-      method: "POST",
-      body: JSON.stringify(body),
-    });
-  } catch (e: any) {
-    if (e.message.includes("409")) {
+  const body = userId ? { pseudo, userId } : { pseudo };
+  const res = await fetch(`${API_URL}/api/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    if (res.status === 409) {
       throw new Error("Ce pseudo est déjà pris, choisissez-en un autre.");
     }
-    throw e;
+    throw new Error(data.error || res.statusText);
   }
+
+  if (res.status === 201) {
+    window.alert(
+      `🎉 Bienvenue, ${data.pseudo} !\n\n` +
+        `Votre identifiant unique est : ${data.userId}\n\n` +
+        `Conservez-le précieusement ! ` +
+        `Si vous perdez votre session, utilisez cet identifiant pour vous reconnecter.`
+    );
+  }
+
+  return data as User;
 }
 
 export function getMessages(): Promise<Message[]> {

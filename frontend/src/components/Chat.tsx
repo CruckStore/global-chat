@@ -20,6 +20,7 @@ const Chat: React.FC = () => {
   const [pseudo, setPseudo] = useState("");
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const [savedUserId, setSavedUserId] = useState("");
 
   useEffect(() => {
     const stored = localStorage.getItem("chat_user");
@@ -49,9 +50,9 @@ const Chat: React.FC = () => {
     }
   }, [msgs]);
 
-  const handleLogin = async () => {
+  const handleLogin = async (pseudo: string, userId?: string) => {
     try {
-      const u = await login(pseudo.trim());
+      const u = await login(pseudo, userId);
       setUser(u);
       localStorage.setItem("chat_user", JSON.stringify(u));
     } catch (e) {
@@ -104,7 +105,7 @@ const Chat: React.FC = () => {
         className="chat-login"
         onSubmit={(e) => {
           e.preventDefault();
-          handleLogin();
+          handleLogin(pseudo.trim(), savedUserId.trim() || undefined);
         }}
       >
         <h2>Se connecter</h2>
@@ -113,6 +114,12 @@ const Chat: React.FC = () => {
           value={pseudo}
           onChange={(e) => setPseudo(e.target.value)}
           placeholder="Votre pseudo"
+        />
+        <input
+          type="text"
+          value={savedUserId}
+          onChange={(e) => setSavedUserId(e.target.value)}
+          placeholder="Votre ID (optionnel)"
         />
         <button type="submit" disabled={!pseudo.trim()}>
           Entrer
