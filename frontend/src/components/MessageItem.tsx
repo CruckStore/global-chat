@@ -4,6 +4,7 @@ import type { Message, User } from "../services/api";
 
 interface MessageItemProps {
   m: Message;
+  parentMessage?: Message;
   currentUser: User;
   onReply: (content: string, parentId?: number) => void;
   onEdit: (id: number, content: string) => void;
@@ -12,6 +13,7 @@ interface MessageItemProps {
 
 const MessageItem: React.FC<MessageItemProps> = ({
   m,
+  parentMessage,
   currentUser,
   onReply,
   onEdit,
@@ -56,6 +58,17 @@ const MessageItem: React.FC<MessageItemProps> = ({
         </span>
         {m.edited && <span className="message-edited">(modifié)</span>}
       </div>
+
+      {parentMessage && (
+        <div className="message-reply-to">
+          Réponse à <strong>{parentMessage.pseudo}</strong> :
+          <em>
+            {" "}
+            {parentMessage.content.slice(0, 50)}
+            {parentMessage.content.length > 50 ? "…" : ""}
+          </em>
+        </div>
+      )}
 
       {isEditing ? (
         <div className="inline-editor">
