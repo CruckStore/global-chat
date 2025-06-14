@@ -1,32 +1,3 @@
-:root {
-  --primary-color: #007aff;
-  --background-color: #f2f2f7;
-  --card-background: #ffffff;
-  --text-color: #1c1c1e;
-  --secondary-text: #8e8e93;
-  --border-color: #c6c6c8;
-  --radius: 12px;
-  --gap: 16px;
-}
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-html,
-body,
-#root {
-  height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-    Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-  background-color: var(--background-color);
-  color: var(--text-color);
-}
-
-/* Login Screen */
-
 .chat-login {
   display: flex;
   flex-direction: column;
@@ -72,8 +43,6 @@ body,
   cursor: not-allowed;
 }
 
-/* Chat Container */
-
 .chat-container {
   display: flex;
   flex-direction: column;
@@ -85,8 +54,6 @@ body,
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-/* Header */
-
 .chat-header {
   padding: var(--gap);
   background-color: var(--primary-color);
@@ -95,7 +62,18 @@ body,
   text-align: center;
 }
 
-/* Message List */
+.chat-stats {
+  margin-top: 4px;
+  font-size: 14px;
+  opacity: 0.9;
+  display: flex;
+  gap: 12px;
+}
+
+.chat-body {
+  display: flex;
+  flex: 1;
+}
 
 .message-list {
   flex: 1;
@@ -103,8 +81,6 @@ body,
   padding: var(--gap);
   background-color: var(--background-color);
 }
-
-/* Input Area */
 
 .message-input-container {
   padding: 12px;
@@ -140,4 +116,44 @@ body,
 .message-send-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.chat-header {
+  flex: 0 0 auto;
+}
+
+.chat-body {
+  flex: 1 1 auto;
+  display: flex;
+  overflow: hidden;
+}
+
+.message-list {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: var(--gap);
+  background-color: var(--background-color);
+}
+
+.online-list {
+  flex: 0 0 160px;
+}
+
+.message-input-container {
+  flex: 0 0 auto;
+  padding: 12px;
+  background-color: var(--input-bg);
+  border-top: 1px solid var(--input-border);
+}
+
+.message-input-form {
+  display: flex;
+  gap: 8px;
 }

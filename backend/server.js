@@ -33,6 +33,8 @@ async function parseBody(req) {
   });
 }
 
+// GET /api/online
+
 const server = http.createServer(async (req, res) => {
   const { pathname } = url.parse(req.url, true);
 
@@ -40,8 +42,54 @@ const server = http.createServer(async (req, res) => {
     return sendJSON(res, 200, {});
   }
 
-  const body = await parseBody(req);
+  if (req.headers["user-id"]) {
+    await pool.execute("UPDATE users SET last_seen = NOW() WHERE user_id = ?", [
+      req.headers["user-id"],
+    ]);
+  }
 
+  const body = await parseBody(req);
+  if (pathname === "/api/online" && req.method === "GET") {
+    const [rows] = await pool.query(
+      `SELECT user_id, pseudo
+         FROM users
+        WHERE last_seen >= DATE_SUB(NOW(), INTERVAL 2 MINUTE)
+          AND banned = 0`
+    );
+    return sendJSON(res, 200, rows);
+  }
+  // GET /api/stats
+  if (pathname === "/api/stats" && req.method === "GET") {
+    const [[{ cnt: total }]] = await pool.query(
+      `SELECT COUNT(*) AS cnt FROM users`
+    );
+    const [[{ cnt: online }]] = await pool.query(
+      `SELECT COUNT(*) AS cnt
+         FROM users
+        WHERE last_seen >= DATE_SUB(NOW(), INTERVAL 2 MINUTE)
+          AND banned = 0`
+    );
+    return sendJSON(res, 200, { total, online });
+  }
+  // POST /api/ban/:userId
+  if (pathname.startsWith("/api/ban/") && req.method === "POST") {
+    const targetId = pathname.split("/").pop();
+    const adminId = req.headers["user-id"];
+    const [[admin]] = await pool.execute(
+      `SELECT role FROM users WHERE user_id = ?`,
+      [adminId]
+    );
+    if (!admin || admin.role !== "admin") {
+      return sendJSON(res, 403, { error: "Seulement admin" });
+    }
+    if (targetId === adminId) {
+      return sendJSON(res, 400, { error: "Impossible de vous bannir" });
+    }
+    await pool.execute(`UPDATE users SET banned = 1 WHERE user_id = ?`, [
+      targetId,
+    ]);
+    return sendJSON(res, 200, { success: true });
+  }
   if (pathname === "/api/login" && req.method === "POST") {
     const { pseudo, userId } = body;
 

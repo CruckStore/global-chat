@@ -4,23 +4,28 @@ import {
   login,
   getMessages,
   postMessage,
+  getStats,
   editMessage,
   deleteMessage,
   Message,
+  Stats,
   User,
 } from "../services/api";
 import MessageList from "./MessageList";
 import MessageInput from "./MessageInput";
+import OnlineList from "./OnlineList";
 
-const POLL_INTERVAL = 2000;
+const POLL_INTERVAL = 100;
+const STATS_INTERVAL = 5000;
 
 const Chat: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [msgs, setMsgs] = useState<Message[]>([]);
   const [pseudo, setPseudo] = useState("");
+  const [savedUserId, setSavedUserId] = useState("");
+  const [msgs, setMsgs] = useState<Message[]>([]);
   const [replyTo, setReplyTo] = useState<Message | null>(null);
+  const [stats, setStats] = useState<Stats>({ total: 0, online: 0 });
   const listRef = useRef<HTMLDivElement>(null);
-
   const prevLastMsgId = useRef<number | null>(null);
 
   useEffect(() => {
@@ -38,6 +43,7 @@ const Chat: React.FC = () => {
     }
   }, []);
 
+  // polling messages
   useEffect(() => {
     if (!user) return;
     const load = () => getMessages().then(setMsgs).catch(console.error);
@@ -51,15 +57,23 @@ const Chat: React.FC = () => {
     const last = msgs[msgs.length - 1];
     const lastId = last ? last.id : null;
     if (lastId !== prevLastMsgId.current) {
-      const el = listRef.current;
-      el.scrollTop = el.scrollHeight;
+      listRef.current.scrollTop = listRef.current.scrollHeight;
       prevLastMsgId.current = lastId;
     }
   }, [msgs]);
 
+  // polling stats
+  useEffect(() => {
+    if (!user) return;
+    const loadStats = () => getStats().then(setStats).catch(console.error);
+    loadStats();
+    const timer = setInterval(loadStats, STATS_INTERVAL);
+    return () => clearInterval(timer);
+  }, [user]);
+
   const handleLogin = async () => {
     try {
-      const u = await login(pseudo.trim());
+      const u = await login(pseudo.trim(), savedUserId.trim() || undefined);
       setUser(u);
       localStorage.setItem("chat_user", JSON.stringify(u));
     } catch (e) {
@@ -124,6 +138,12 @@ const Chat: React.FC = () => {
           onChange={(e) => setPseudo(e.target.value)}
           placeholder="Votre pseudo"
         />
+        <input
+          type="text"
+          value={savedUserId}
+          onChange={(e) => setSavedUserId(e.target.value)}
+          placeholder="Votre ID (optionnel)"
+        />
         <button type="submit" disabled={!pseudo.trim()}>
           Entrer
         </button>
@@ -135,17 +155,24 @@ const Chat: React.FC = () => {
     <div className="chat-container">
       <header className="chat-header">
         Chat Général — Vous êtes <em>{user.pseudo}</em> ({user.role})
+        <div className="chat-stats">
+          <span>🟢 En ligne : {stats.online}</span>
+          <span>👥 Inscrits : {stats.total}</span>
+        </div>
       </header>
 
-      <main className="message-list" ref={listRef}>
-        <MessageList
-          messages={msgs}
-          currentUser={user}
-          onReplyInitiate={initiateReply}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
-      </main>
+      <div className="chat-body">
+        <main className="message-list" ref={listRef}>
+          <MessageList
+            messages={msgs}
+            currentUser={user}
+            onReplyInitiate={initiateReply}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        </main>
+        <OnlineList currentUser={user} />
+      </div>
 
       <footer className="message-input-container">
         <MessageInput

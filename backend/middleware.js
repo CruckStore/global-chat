@@ -12,4 +12,20 @@ async function touchLastSeen(req, res) {
   }
 }
 
+async function ensureNotBanned(req, res) {
+    const userId = req.headers["user-id"];
+    if (userId) {
+      const [[u]] = await pool.execute(
+        `SELECT banned FROM users WHERE user_id = ?`,
+        [userId]
+      );
+      if (u && u.banned) {
+        sendJSON(res, 403, { error: "Vous êtes banni" });
+        return false;
+      }
+    }
+    return true;
+  }
+  
+  if (!(await ensureNotBanned(req, res))) return;
 module.exports = { touchLastSeen };

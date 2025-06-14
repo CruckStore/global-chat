@@ -16,10 +16,35 @@ export interface Message {
   parent_id: number | null;
 }
 
+export interface OnlineUser {
+  user_id: string;
+  pseudo: string;
+}
+
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
 
 interface RequestOptions extends RequestInit {
   headers?: HeadersInit;
+}
+function getAuthHeaders() {
+  const stored = localStorage.getItem("chat_user");
+  if (!stored) throw new Error("Utilisateur non connecté");
+  const { userId } = JSON.parse(stored) as { userId: string };
+  return { "user-id": userId };
+}
+
+export function getStats(): Promise<Stats> {
+  return request<Stats>("/api/stats", {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+}
+
+export function getOnlineUsers(): Promise<OnlineUser[]> {
+  return request<OnlineUser[]>("/api/online", {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
 }
 
 async function request<T>(
@@ -71,6 +96,14 @@ export async function login(pseudo: string, userId?: string): Promise<User> {
   return data as User;
 }
 
+export function banUser(userId: string): Promise<void> {
+  return request<void>(`/api/ban/${userId}`, {
+    method: "POST",
+    headers: {
+      "user-id": JSON.parse(localStorage.getItem("chat_user")!).userId,
+    },
+  });
+}
 export function getMessages(): Promise<Message[]> {
   return request<Message[]>("/api/messages", {
     method: "GET",
@@ -80,10 +113,6 @@ export function getMessages(): Promise<Message[]> {
 export interface Stats {
   total: number;
   online: number;
-}
-
-export function getStats(): Promise<Stats> {
-  return request<Stats>("/api/stats", { method: "GET" });
 }
 
 export function postMessage(
