@@ -6,7 +6,7 @@ interface MessageItemProps {
   m: Message;
   parentMessage?: Message;
   currentUser: User;
-  onReply: (content: string, parentId?: number) => void;
+  onReplyInitiate: (message: Message) => void;
   onEdit: (id: number, content: string) => void;
   onDelete: (id: number) => void;
 }
@@ -15,7 +15,7 @@ const MessageItem: React.FC<MessageItemProps> = ({
   m,
   parentMessage,
   currentUser,
-  onReply,
+  onReplyInitiate,
   onEdit,
   onDelete,
 }) => {
@@ -27,21 +27,14 @@ const MessageItem: React.FC<MessageItemProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(m.content);
 
-  const handleSave = () => {
-    const trimmed = draft.trim();
-    if (trimmed && trimmed !== m.content) {
-      onEdit(m.id, trimmed);
-    }
+  const saveEdit = () => {
+    const txt = draft.trim();
+    if (txt && txt !== m.content) onEdit(m.id, txt);
     setIsEditing(false);
   };
-  const handleCancel = () => {
+  const cancelEdit = () => {
     setDraft(m.content);
     setIsEditing(false);
-  };
-
-  const handleReply = () => {
-    const reply = window.prompt("Votre réponse :");
-    if (reply) onReply(reply, m.id);
   };
 
   return (
@@ -78,10 +71,10 @@ const MessageItem: React.FC<MessageItemProps> = ({
             onChange={(e) => setDraft(e.target.value)}
           />
           <div className="inline-actions">
-            <button className="btn-save" onClick={handleSave}>
+            <button className="btn-save" onClick={saveEdit}>
               Sauvegarder
             </button>
-            <button className="btn-cancel" onClick={handleCancel}>
+            <button className="btn-cancel" onClick={cancelEdit}>
               Annuler
             </button>
           </div>
@@ -92,7 +85,7 @@ const MessageItem: React.FC<MessageItemProps> = ({
 
       {!isEditing && (
         <div className="message-actions">
-          <button className="btn-reply" onClick={handleReply}>
+          <button className="btn-reply" onClick={() => onReplyInitiate(m)}>
             Répondre
           </button>
           {canEdit && (

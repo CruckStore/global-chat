@@ -18,7 +18,9 @@ const Chat: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [msgs, setMsgs] = useState<Message[]>([]);
   const [pseudo, setPseudo] = useState("");
+  const [replyTo, setReplyTo] = useState<Message | null>(null);
 
+  // auto-login
   useEffect(() => {
     const stored = localStorage.getItem("chat_user");
     if (stored) {
@@ -28,12 +30,11 @@ const Chat: React.FC = () => {
           setUser(u2);
           localStorage.setItem("chat_user", JSON.stringify(u2));
         })
-        .catch(() => {
-          localStorage.removeItem("chat_user");
-        });
+        .catch(() => localStorage.removeItem("chat_user"));
     }
   }, []);
 
+  // polling
   useEffect(() => {
     if (!user) return;
     const load = () => getMessages().then(setMsgs).catch(console.error);
@@ -52,10 +53,15 @@ const Chat: React.FC = () => {
     }
   };
 
+  const initiateReply = (message: Message) => {
+    setReplyTo(message);
+  };
+
   const handleSend = async (content: string, parentId?: number) => {
     try {
       await postMessage(content, parentId);
       setMsgs(await getMessages());
+      setReplyTo(null);
     } catch (e) {
       alert((e as Error).message);
     }
@@ -79,6 +85,8 @@ const Chat: React.FC = () => {
       alert((e as Error).message);
     }
   };
+
+  const cancelReply = () => setReplyTo(null);
 
   if (!user) {
     return (
@@ -108,17 +116,23 @@ const Chat: React.FC = () => {
       <header className="chat-header">
         Chat Général — Vous êtes <em>{user.pseudo}</em> ({user.role})
       </header>
+
       <main className="message-list">
         <MessageList
           messages={msgs}
           currentUser={user}
+          onReplyInitiate={initiateReply}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          onReply={handleSend}
         />
       </main>
+
       <footer className="message-input-container">
-        <MessageInput onSend={handleSend} />
+        <MessageInput
+          onSend={handleSend}
+          parentMessage={replyTo}
+          onCancelReply={cancelReply}
+        />
       </footer>
     </div>
   );
