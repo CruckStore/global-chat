@@ -1,5 +1,3 @@
-// frontend/src/components/Chat.tsx
-
 import React, { useState, useEffect, useRef } from "react";
 import "./Chat.scss";
 import {
@@ -23,7 +21,6 @@ const Chat: React.FC = () => {
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
-  // auto-login…
   useEffect(() => {
     const stored = localStorage.getItem("chat_user");
     if (stored) {
@@ -37,7 +34,6 @@ const Chat: React.FC = () => {
     }
   }, []);
 
-  // fetch + polling
   useEffect(() => {
     if (!user) return;
     const load = () => getMessages().then(setMsgs).catch(console.error);
@@ -65,7 +61,6 @@ const Chat: React.FC = () => {
 
   const initiateReply = (message: Message) => {
     setReplyTo(message);
-
     listRef.current?.scrollTo({
       top: listRef.current.scrollHeight,
       behavior: "smooth",
