@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "./Chat.css";
+import "./Chat.scss";
 import {
   login,
   getMessages,
