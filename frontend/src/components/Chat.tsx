@@ -20,7 +20,8 @@ const Chat: React.FC = () => {
   const [pseudo, setPseudo] = useState("");
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
-  const [savedUserId, setSavedUserId] = useState("");
+
+  const prevLastMsgId = useRef<number | null>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem("chat_user");
@@ -31,7 +32,9 @@ const Chat: React.FC = () => {
           setUser(u2);
           localStorage.setItem("chat_user", JSON.stringify(u2));
         })
-        .catch(() => localStorage.removeItem("chat_user"));
+        .catch(() => {
+          localStorage.removeItem("chat_user");
+        });
     }
   }, []);
 
@@ -44,15 +47,19 @@ const Chat: React.FC = () => {
   }, [user]);
 
   useEffect(() => {
-    if (listRef.current) {
+    if (!listRef.current) return;
+    const last = msgs[msgs.length - 1];
+    const lastId = last ? last.id : null;
+    if (lastId !== prevLastMsgId.current) {
       const el = listRef.current;
       el.scrollTop = el.scrollHeight;
+      prevLastMsgId.current = lastId;
     }
   }, [msgs]);
 
-  const handleLogin = async (pseudo: string, userId?: string) => {
+  const handleLogin = async () => {
     try {
-      const u = await login(pseudo, userId);
+      const u = await login(pseudo.trim());
       setUser(u);
       localStorage.setItem("chat_user", JSON.stringify(u));
     } catch (e) {
@@ -97,7 +104,9 @@ const Chat: React.FC = () => {
     }
   };
 
-  const cancelReply = () => setReplyTo(null);
+  const cancelReply = () => {
+    setReplyTo(null);
+  };
 
   if (!user) {
     return (
@@ -105,7 +114,7 @@ const Chat: React.FC = () => {
         className="chat-login"
         onSubmit={(e) => {
           e.preventDefault();
-          handleLogin(pseudo.trim(), savedUserId.trim() || undefined);
+          handleLogin();
         }}
       >
         <h2>Se connecter</h2>
@@ -114,12 +123,6 @@ const Chat: React.FC = () => {
           value={pseudo}
           onChange={(e) => setPseudo(e.target.value)}
           placeholder="Votre pseudo"
-        />
-        <input
-          type="text"
-          value={savedUserId}
-          onChange={(e) => setSavedUserId(e.target.value)}
-          placeholder="Votre ID (optionnel)"
         />
         <button type="submit" disabled={!pseudo.trim()}>
           Entrer
