@@ -1,9 +1,11 @@
 export type Role = "member" | "premium" | "admin";
+
 export interface User {
   userId: string;
   pseudo: string;
   role: Role;
 }
+
 export interface Message {
   id: number;
   user_id: string;
@@ -14,57 +16,91 @@ export interface Message {
   parent_id: number | null;
 }
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
 
-async function request<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(API + url, init);
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
+interface RequestOptions extends RequestInit {
+  headers?: HeadersInit;
 }
 
-export function login(pseudo: string, userId?: string): Promise<User> {
-  return request<User>("/api/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ pseudo, userId }),
+async function request<T>(
+  endpoint: string,
+  options: RequestOptions = {}
+): Promise<T> {
+  const res = await fetch(`${API_URL}${endpoint}`, {
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers ?? {}),
+    },
+    ...options,
   });
+
+  if (!res.ok) {
+    const text = await res.text();
+    const errorMessage = text || res.statusText;
+    throw new Error(errorMessage);
+  }
+
+  return (await res.json()) as T;
+}
+
+export async function login(pseudo: string, userId?: string): Promise<User> {
+  try {
+    const body = userId ? { pseudo, userId } : { pseudo };
+    return await request<User>("/api/login", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  } catch (e: any) {
+    if (e.message.includes("409")) {
+      throw new Error("Ce pseudo est déjà pris, choisissez-en un autre.");
+    }
+    throw e;
+  }
 }
 
 export function getMessages(): Promise<Message[]> {
-  return request<Message[]>("/api/messages");
+  return request<Message[]>("/api/messages", {
+    method: "GET",
+  });
 }
 
 export function postMessage(
   content: string,
   parentId?: number
 ): Promise<Message> {
-  const u = JSON.parse(localStorage.getItem("chat_user")!);
+  const stored = localStorage.getItem("chat_user");
+  if (!stored) {
+    return Promise.reject(new Error("Utilisateur non connecté"));
+  }
+  const { userId } = JSON.parse(stored) as User;
   return request<Message>("/api/messages", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "user-id": u.userId,
-    },
+    headers: { "user-id": userId },
     body: JSON.stringify({ content, parentId }),
   });
 }
 
 export function editMessage(id: number, content: string): Promise<void> {
-  const u = JSON.parse(localStorage.getItem("chat_user")!);
+  const stored = localStorage.getItem("chat_user");
+  if (!stored) {
+    return Promise.reject(new Error("Utilisateur non connecté"));
+  }
+  const { userId } = JSON.parse(stored) as User;
   return request<void>(`/api/messages/${id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      "user-id": u.userId,
-    },
+    headers: { "user-id": userId },
     body: JSON.stringify({ content }),
   });
 }
 
 export function deleteMessage(id: number): Promise<void> {
-  const u = JSON.parse(localStorage.getItem("chat_user")!);
+  const stored = localStorage.getItem("chat_user");
+  if (!stored) {
+    return Promise.reject(new Error("Utilisateur non connecté"));
+  }
+  const { userId } = JSON.parse(stored) as User;
   return request<void>(`/api/messages/${id}`, {
     method: "DELETE",
-    headers: { "user-id": u.userId },
+    headers: { "user-id": userId },
   });
 }
