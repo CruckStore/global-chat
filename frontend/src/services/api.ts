@@ -64,6 +64,15 @@ export function getMessages(): Promise<Message[]> {
   });
 }
 
+export interface Stats {
+  total: number;
+  online: number;
+}
+
+export function getStats(): Promise<Stats> {
+  return request<Stats>("/api/stats", { method: "GET" });
+}
+
 export function postMessage(
   content: string,
   parentId?: number
