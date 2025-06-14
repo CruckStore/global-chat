@@ -5,7 +5,7 @@ import MessageItem from "./MessageItem";
 interface MessageListProps {
   messages: Message[];
   currentUser: User;
-  onReply: (content: string, parentId?: number) => void;
+  onReplyInitiate: (message: Message) => void;
   onEdit: (id: number, content: string) => void;
   onDelete: (id: number) => void;
 }
@@ -13,7 +13,7 @@ interface MessageListProps {
 const MessageList: React.FC<MessageListProps> = ({
   messages,
   currentUser,
-  onReply,
+  onReplyInitiate,
   onEdit,
   onDelete,
 }) => {
@@ -30,7 +30,7 @@ const MessageList: React.FC<MessageListProps> = ({
           m={m}
           parentMessage={m.parent_id ? messageMap.get(m.parent_id!) : undefined}
           currentUser={currentUser}
-          onReply={onReply}
+          onReplyInitiate={onReplyInitiate}
           onEdit={onEdit}
           onDelete={onDelete}
         />
