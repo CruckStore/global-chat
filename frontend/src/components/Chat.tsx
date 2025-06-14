@@ -82,7 +82,13 @@ const Chat: React.FC = () => {
 
   if (!user) {
     return (
-      <div className="chat-login">
+      <form
+        className="chat-login"
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleLogin();
+        }}
+      >
         <h2>Se connecter</h2>
         <input
           type="text"
@@ -90,10 +96,10 @@ const Chat: React.FC = () => {
           onChange={(e) => setPseudo(e.target.value)}
           placeholder="Votre pseudo"
         />
-        <button onClick={handleLogin} disabled={!pseudo.trim()}>
+        <button type="submit" disabled={!pseudo.trim()}>
           Entrer
         </button>
-      </div>
+      </form>
     );
   }
 
