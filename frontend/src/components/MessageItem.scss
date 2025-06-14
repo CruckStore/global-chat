@@ -1,0 +1,73 @@
+.message-item {
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: var(--gap);
+  margin-bottom: var(--gap);
+}
+
+.message-header {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: var(--secondary-text);
+  margin-bottom: 6px;
+}
+
+.message-pseudo {
+  font-weight: 500;
+  color: var(--text-color);
+  margin-right: 8px;
+}
+
+.message-time {
+  font-size: 12px;
+}
+
+.message-edited {
+  margin-left: 6px;
+  font-style: italic;
+}
+
+.message-content {
+  font-size: 16px;
+  color: var(--text-color);
+  margin-bottom: 8px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.message-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.message-actions button {
+  background: none;
+  border: none;
+  font-size: 14px;
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: var(--radius);
+  transition: background-color 0.2s ease;
+  color: var(--primary-color);
+}
+
+.message-actions button:hover {
+  background-color: rgba(0, 122, 255, 0.1);
+}
+
+.btn-delete {
+  color: #ff3b30;
+}
+
+.btn-delete:hover {
+  background-color: rgba(255, 59, 48, 0.1);
+}
+
+.no-permission {
+  font-size: 14px;
+  color: var(--secondary-text);
+  font-style: italic;
+}

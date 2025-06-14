@@ -1,5 +1,5 @@
 import React from "react";
-import "./MessageItem.css";
+import "./MessageItem.scss";
 import type { Message, User } from "../services/api";
 
 interface MessageItemProps {
